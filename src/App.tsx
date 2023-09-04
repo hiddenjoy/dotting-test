@@ -51,11 +51,43 @@ function App() {
       // URL2: http://localhost:6005/?path=/story/hooks-usegrids--page
       // Do not modify any parts other than the below.
       // Modifiy ⬇️
+
       if (hoveredPixel) {
         console.log(
           `You clicked on rowIndex: ${hoveredPixel.rowIndex}, columnIndex: ${hoveredPixel.columnIndex}`
         );
+
+        const firework = []; // array for storing the pixels to be colored
+
+        for (let x = indices.topRowIndex; x <= indices.bottomRowIndex; x++) {
+          const descY = x + (hoveredPixel.columnIndex - hoveredPixel.rowIndex); // for descending diagonal
+          if (
+            descY >= indices.leftColumnIndex &&
+            descY <= indices.rightColumnIndex // check if the pixel is within the boundaries of the canvas
+          ) {
+            firework.push({
+              rowIndex: x,
+              columnIndex: descY,
+              color: "red",
+            });
+          }
+
+          const ascY = -x + (hoveredPixel.columnIndex + hoveredPixel.rowIndex); // for ascending diagonal
+          if (
+            ascY >= indices.leftColumnIndex &&
+            ascY <= indices.rightColumnIndex // check if the pixel is within the boundaries of the canvas
+          ) {
+            firework.push({
+              rowIndex: x,
+              columnIndex: ascY,
+              color: "red",
+            });
+          }
+        }
+
+        colorPixels(firework); // color the pixels
       }
+
       // Modify ⬆️
     };
     addCanvasElementEventListener("mousedown", onCanvasClickListener);
