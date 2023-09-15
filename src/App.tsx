@@ -10,6 +10,25 @@ import {
   useHandlers,
 } from "dotting";
 
+import { PixelModifyItem } from "dotting";
+import bdata from "./data/bdata.json";
+import kdata from "./data/kdata.json";
+import hdata from "./data/hdata.json";
+
+export const CreateEmptySquareData = (
+  size: number
+): Array<Array<PixelModifyItem>> => {
+  const data: Array<Array<PixelModifyItem>> = [];
+  for (let i = 0; i < size; i++) {
+    const row: Array<PixelModifyItem> = [];
+    for (let j = 0; j < size; j++) {
+      row.push({ rowIndex: i, columnIndex: j, color: "" });
+    }
+    data.push(row);
+  }
+  return data;
+};
+
 function App() {
   const ref = useRef<DottingRef>(null);
   const { colorPixels } = useDotting(ref);
@@ -24,6 +43,7 @@ function App() {
     rowIndex: number;
     columnIndex: number;
   } | null>(null);
+  const { clear } = useDotting(ref);
 
   useEffect(() => {
     const hoverPixelChangeListener: CanvasHoverPixelChangeHandler = (pixel) => {
@@ -85,12 +105,14 @@ function App() {
           }
         }
 
-        colorPixels(firework); // color the pixels
+        // colorPixels(firework); // color the pixels
       }
 
       // Modify ⬆️
     };
+
     addCanvasElementEventListener("mousedown", onCanvasClickListener);
+
     return () => {
       removeCanvasElementEventListener("mousedown", onCanvasClickListener);
     };
@@ -102,6 +124,55 @@ function App() {
     colorPixels,
     dimensions,
   ]);
+
+  // 2주차 과제
+
+  // 알파벳 어레이 다운받기
+  const { dataArray } = useData(ref);
+  const downloadDataArray = () => {
+    const aData = dataArray;
+    const aDataJson = JSON.stringify(aData);
+    const blob = new Blob([aDataJson], { type: "text/plain" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "data.json";
+    link.click();
+  };
+
+  // 다운받은 어레이들로 색칠하기
+  const colorAlphabet = (data: any) => {
+    clear();
+    data.forEach((row: any, rowIndex: number) => {
+      row.forEach((pixel: any, columnIndex: number) => {
+        if (pixel.color) {
+          colorPixels([
+            {
+              rowIndex: rowIndex,
+              columnIndex: columnIndex,
+              color: "black",
+            },
+          ]);
+        }
+      });
+    });
+  };
+
+  useEffect(() => {
+    const onKeyPress = (e: KeyboardEvent): void => {
+      if (e.key === "k" || e.key === "K" || e.key === "ㅏ") {
+        colorAlphabet(kdata);
+      } else if (e.key === "h" || e.key === "H" || e.key === "ㅗ") {
+        colorAlphabet(hdata);
+      } else if (e.key === "b" || e.key === "B" || e.key === "ㅠ") {
+        colorAlphabet(bdata);
+      }
+    };
+    window.addEventListener("keypress", onKeyPress);
+    return () => {
+      window.addEventListener("keypress", onKeyPress);
+    };
+  }, []);
 
   return (
     <div
@@ -116,7 +187,7 @@ function App() {
         position: "relative",
       }}
     >
-      {hoveredPixel && (
+      {/* {hoveredPixel && (
         <div
           style={{
             position: "absolute",
@@ -128,8 +199,38 @@ function App() {
           You are hoveing rowIndex: {hoveredPixel.rowIndex}, columnIndex:{" "}
           {hoveredPixel.columnIndex}
         </div>
-      )}
-      <Dotting width={500} height={500} ref={ref} />
+      )} */}
+      <Dotting
+        width={1000}
+        height={650}
+        ref={ref}
+        initLayers={[{ id: "layer1", data: CreateEmptySquareData(28) }]}
+      />
+      <div>
+        <button
+          style={{
+            padding: "5px 10px",
+            background: "white",
+            marginTop: 10,
+            marginBottom: 50,
+          }}
+          onClick={clear}
+        >
+          clear
+        </button>
+
+        <button
+          style={{
+            padding: "5px 10px",
+            background: "white",
+            marginTop: 10,
+            marginBottom: 50,
+          }}
+          onClick={downloadDataArray}
+        >
+          download array
+        </button>
+      </div>
     </div>
   );
 }
